@@ -3196,6 +3196,8 @@ class EmulatorJS {
             }
         }
         buttons.push(
+            { id: 30, label: this.localization("AUTOFIRE A") },
+            { id: 31, label: this.localization("AUTOFIRE B") },
             { id: 24, label: this.localization("QUICK SAVE STATE") },
             { id: 25, label: this.localization("QUICK LOAD STATE") },
             { id: 26, label: this.localization("CHANGE STATE SLOT") },
@@ -3452,7 +3454,7 @@ class EmulatorJS {
                 const autofireColumn = this.createElement("div");
                 autofireColumn.style = "width:20%;float:left;text-align:center;";
 
-                if (!this.analogAxes.includes(k)) {
+                if (!this.analogAxes.includes(k) && k !== 30 && k !== 31) {
                     const autofireCheckbox = this.createElement("input");
                     autofireCheckbox.type = "checkbox";
                     autofireCheckbox.style = "cursor:pointer;";
@@ -3660,6 +3662,8 @@ class EmulatorJS {
                 27: {},
                 28: {},
                 29: {},
+                30: {},
+                31: {},
             },
             1: {},
             2: {},
@@ -3772,7 +3776,7 @@ class EmulatorJS {
     }
     setupKeys() {
         for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 30; j++) {
+            for (let j = 0; j < 32; j++) {
                 if (this.controls[i][j]) {
                     this.controls[i][j].value = parseInt(this.keyLookup(this.controls[i][j].value));
                     if (this.controls[i][j].value === -1 && this.debug) {
@@ -3794,6 +3798,19 @@ class EmulatorJS {
         }
         return -1;
     }
+    getAutofireButtonIndex(button) {
+        const scheme = this.getControlScheme();
+        if (scheme === "n64") {
+            return button === "A" ? 0 : 1;
+        }
+        if (["segaMD", "segaCD", "sega32x", "segaSaturn", "3do"].includes(scheme)) {
+            return button === "A" ? 1 : 0;
+        }
+        if (scheme === "ngp") {
+            return button === "A" ? 0 : 8;
+        }
+        return button === "A" ? 8 : 0;
+    }
     getAutofireInterval(playerIndex, buttonIndex) {
         const control = this.controls[playerIndex] && this.controls[playerIndex][buttonIndex];
         if (control && typeof control.autoFireInterval === "number") {
@@ -3813,6 +3830,7 @@ class EmulatorJS {
         }
         let pressed = true;
         const interval = this.getAutofireInterval(playerIndex, buttonIndex);
+        this.gameManager.simulateInput(playerIndex, buttonIndex, inputValue);
         this.autofireIntervals[key] = setInterval(() => {
             if (this.paused || !this.gameManager) return;
             pressed = !pressed;
@@ -3855,8 +3873,17 @@ class EmulatorJS {
         if (this.settingsMenu.style.display !== "none" || this.isPopupOpen() || this.getSettingValue("keyboardInput") === "enabled") return;
         e.preventDefault();
         for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 30; j++) {
+            for (let j = 0; j < 32; j++) {
                 if (this.controls[i][j] && this.controls[i][j].value === e.keyCode) {
+                    if (j === 30 || j === 31) {
+                        const targetButton = this.getAutofireButtonIndex(j === 30 ? "A" : "B");
+                        if (e.type === "keyup") {
+                            this.stopAutofire(i, targetButton);
+                        } else {
+                            this.startAutofire(i, targetButton, 1);
+                        }
+                        continue;
+                    }
                     const isAnalog = this.analogAxes.includes(j);
                     const inputValue = isAnalog ? 0x7fff : 1;
                     const isKeyUp = e.type === "keyup";

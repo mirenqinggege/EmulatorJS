@@ -336,5 +336,7 @@
     "Menu Bar Button": "Menu Bar Button",
     "visible": "visible",
     "hidden": "hidden",
-    "Autofire": "Autofire"
+    "Autofire": "Autofire",
+    "AUTOFIRE A": "Autofire A",
+    "AUTOFIRE B": "Autofire B"
 }

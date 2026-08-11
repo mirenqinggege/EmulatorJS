@@ -336,5 +336,7 @@
     "Menu Bar Button": "菜单栏按钮",
     "visible": "显示",
     "hidden": "隐藏",
-    "Autofire": "自动连发"
+    "Autofire": "自动连发",
+    "AUTOFIRE A": "连发 A",
+    "AUTOFIRE B": "连发 B"
 }
